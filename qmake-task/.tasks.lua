@@ -99,7 +99,7 @@ overseer.register_template({
 })
 
 overseer.register_template({
-	name = "build and run target orchestrator",
+	name = "build and run target",
 	params = {},
 	condition = exrc_condition,
 	builder = function()
@@ -112,28 +112,6 @@ overseer.register_template({
 					"run target",
 				},
 			},
-		}
-	end,
-})
-
-overseer.register_template({
-	name = "build and run target",
-	params = {},
-	condition = exrc_condition,
-	builder = function()
-		local build_and_run_components = vim.deepcopy(default_components)
-		local seq_tasks = {
-			"dependencies",
-			task_names = {
-				"make",
-				"run target",
-			},
-			sequential = true,
-		}
-		table.insert(build_and_run_components, seq_tasks)
-		return {
-			cmd = "",
-			components = build_and_run_components,
 		}
 	end,
 })
