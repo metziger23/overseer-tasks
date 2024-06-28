@@ -1,12 +1,105 @@
-local ctx = require("exrc").init()
-local qmake = "/Volumes/k/Qt/6.6.2/macos/bin/qmake"
-local pro_file = "~/Development/ConsoleApplication/ConsoleApplication.pro"
+local qmake = ""
+local pro_file = ""
 local qmake_all = "/usr/bin/make qmake_all"
 local debug = "CONFIG+=debug"
-local other = "-spec macx-clang  CONFIG+=qml_debug"
-local make_dir = "--directory ~/Development/ConsoleApplication/"
-local executable = "~/Development/ConsoleApplication/ConsoleApplication"
+local spec = ""
+local make_dir = ""
+local executable = ""
 
+local function get_qmake_path(qmake_arg)
+	if qmake_arg ~= "" then
+		return qmake_arg
+	end
+
+	local possible_paths = {
+		"/Volumes/k/Qt/6.6.2/macos/bin/qmake",
+	}
+
+	for _, possible_path in pairs(possible_paths) do
+		local path_exists = io.open(possible_path, "r")
+		if path_exists ~= nil then
+			return possible_path
+		end
+	end
+
+	return ""
+end
+
+local function get_spec(spec_arg)
+	if spec_arg ~= "" then
+		return spec_arg
+	end
+	if vim.fn.has("mac") == 1 then
+		return "macx-clang"
+	elseif vim.fn.has("linux") == 1 then
+		return "linux-g++"
+	end
+	return ""
+end
+
+local function get_pro_file(pro_file_arg)
+
+  if pro_file_arg ~= "" then
+    return pro_file_arg
+  end
+
+  local cwd = vim.fn.getcwd()
+  local files = vim.fn.readdir(cwd)
+  for _, file in ipairs(files) do
+    if file:match("%.pro$") then
+      return cwd .. '/' .. file
+    end
+  end
+  return nil
+end
+
+-- local function get_pro_file(pro_file_arg)
+-- 	if pro_file_arg ~= "" then
+-- 		return pro_file_arg
+-- 	end
+--
+-- 	local found_pro_file = vim.fn.findfile("*.pro",  ".;")
+-- 	if found_pro_file ~= "" then
+-- 		return found_pro_file
+-- 	end
+-- 	return ""
+-- end
+
+local function get_directory(directory_arg)
+	if directory_arg ~= "" then
+		return directory_arg
+	end
+
+	local found_pro_file = get_pro_file("")
+
+	if found_pro_file ~= "" then
+		return vim.fn.fnamemodify(found_pro_file, ":p:h")
+	end
+	return ""
+end
+
+local function get_executable(executable_arg)
+	if executable_arg ~= "" then
+		return executable_arg
+	end
+
+	local found_pro_file = get_pro_file("")
+
+	if found_pro_file ~= "" then
+		return vim.fn.fnamemodify(found_pro_file, ":t:r")
+	end
+	return ""
+end
+
+pro_file = get_pro_file(pro_file)
+qmake = get_qmake_path(qmake)
+spec = get_spec(spec)
+make_dir = "--directory " .. get_directory(make_dir)
+executable = "./" .. get_executable(executable)
+
+local other = "-spec " .. spec .. " CONFIG+=qml_debug"
+
+local ctx = require("exrc").init()
 local overseer = require("overseer")
 
 local default_components = {
@@ -42,7 +135,7 @@ overseer.register_template({
 	builder = function()
 		return {
 			cmd = qmake .. " " .. pro_file .. " " .. other .. " && " .. qmake_all,
-			components = {},
+			components = default_components,
 		}
 	end,
 })
