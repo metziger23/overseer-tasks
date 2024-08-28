@@ -12,7 +12,7 @@ local function get_qmake_path(qmake_arg)
 	end
 
 	local possible_paths = {
-		"/Volumes/k/Qt/6.6.2/macos/bin/qmake",
+		"/Volumes/ADATA-LEGEND-960-MAX/Qt/6.7.2/macos/bin/qmake",
 	}
 
 	for _, possible_path in pairs(possible_paths) do
@@ -38,19 +38,18 @@ local function get_spec(spec_arg)
 end
 
 local function get_pro_file(pro_file_arg)
+	if pro_file_arg ~= "" then
+		return pro_file_arg
+	end
 
-  if pro_file_arg ~= "" then
-    return pro_file_arg
-  end
-
-  local cwd = vim.fn.getcwd()
-  local files = vim.fn.readdir(cwd)
-  for _, file in ipairs(files) do
-    if file:match("%.pro$") then
-      return cwd .. '/' .. file
-    end
-  end
-  return nil
+	local cwd = vim.fn.getcwd()
+	local files = vim.fn.readdir(cwd)
+	for _, file in ipairs(files) do
+		if file:match("%.pro$") then
+			return cwd .. "/" .. file
+		end
+	end
+	return ""
 end
 
 -- local function get_pro_file(pro_file_arg)
@@ -105,7 +104,7 @@ local overseer = require("overseer")
 local default_components = {
 	{ "on_output_summarize", max_lines = 10 },
 	{ "on_exit_set_status" },
-	{ "on_complete_notify" },
+	-- { "on_complete_notify" },
 	{ "unique" },
 	{ "display_duration" },
 }
@@ -147,7 +146,7 @@ overseer.register_template({
 	builder = function()
 		local dir = make_dir
 		return {
-			cmd = "compiledb make -j8" .. " " .. dir,
+			cmd = "compiledb make -j" .. " " .. dir,
 			components = default_components,
 		}
 	end,
@@ -160,7 +159,7 @@ overseer.register_template({
 	builder = function()
 		local dir = make_dir
 		return {
-			cmd = "make -j8" .. " " .. dir,
+			cmd = "make -j" .. " " .. dir,
 			components = default_components,
 		}
 	end,
@@ -173,7 +172,7 @@ overseer.register_template({
 	builder = function()
 		local dir = make_dir
 		return {
-			cmd = "make clean -j8" .. " " .. dir,
+			cmd = "make clean -j" .. " " .. dir,
 			components = default_components,
 		}
 	end,
@@ -198,6 +197,7 @@ overseer.register_template({
 	builder = function()
 		return {
 			cmd = "",
+			components = default_components,
 			strategy = {
 				"orchestrator",
 				tasks = {
